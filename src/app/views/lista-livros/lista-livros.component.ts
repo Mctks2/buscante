@@ -1,28 +1,52 @@
-import { Component, OnDestroy } from '@angular/core';
 import { Subscription } from 'rxjs';
+import { Component, OnDestroy } from '@angular/core';
 import { LivroService } from 'src/app/service/livro.service';
+import { Livro } from 'src/app/models/interfaces';
 
 @Component({
   selector: 'app-lista-livros',
   templateUrl: './lista-livros.component.html',
-  styleUrls: ['./lista-livros.component.css'],
+  styleUrls: ['./lista-livros.component.css']
 })
-export class ListaLivrosComponent implements OnDestroy {
-  listaLivros: [];
-  campoBusca: string = '';
-  subscription: Subscription
+export class ListaLivrosComponent implements OnDestroy{
 
-  constructor(private service: LivroService) {}
+  listaLivros: Livro[];
+  campoBusca: string = ''
+  subscription: Subscription
+  livro: Livro
+
+  constructor(private service: LivroService) { }
 
   buscarLivros() {
-    this.subscription = this.service.buscar(this.campoBusca).subscribe({// subscribe conecta o Observable com o Observer
-      next: (retornoAPI) => console.log(retornoAPI), // next recebe o retorno da API e imprime no console
+    this.subscription = this.service.buscar(this.campoBusca).subscribe({ // O subscribe recebe um observable que emitira os dados da resposta quando a requisição for concluida
+      next: (items) => { // O next recebe os dados da resposta
+        this.listaLivros = this.livrosResultadoParaLivros(items)
+      },
       error: erro => console.error(erro),
-      complete: () => console.log('Observable completo')
-    });
+    }
+
+    )
+  }
+
+  livrosResultadoParaLivros(items): Livro[] { // Transforma os dados da resposta em um array de livros
+    const livros: Livro[] = []
+
+    items.forEach(item => {
+      livros.push(this.livro = {
+        title: item.volumeInfo?.title,
+        authors: item.volumeInfo?.authors,
+        publisher: item.volumeInfo?.publisher,
+        publishedDate: item.volumeInfo?.publishedDate,
+        description: item.volumeInfo?.description,
+        previewLink: item.volumeInfo?.previewLink,
+        thumbnail: item.volumeInfo?.imageLinks?.thumbnail
+      })
+    })
+
+    return livros
   }
 
   ngOnDestroy() {
-    this.subscription.unsubscribe(); // unsubscribe desliga o Observable
+    this.subscription.unsubscribe() // Desinscreve do observable quando o componente for destruido
   }
 }
