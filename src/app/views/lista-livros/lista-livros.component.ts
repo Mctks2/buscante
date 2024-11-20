@@ -14,8 +14,8 @@ const PAUSA = 300;
 })
 export class ListaLivrosComponent {
 
-  campoBusca = new FormControl();
-  mensagemErro = ''
+  campoBusca = new FormControl();  // Campo de busca vinculado ao formulário
+  mensagemErro = '' // Mensagem de erro exibida ao usuário
   livrosResultado: LivrosResultado;
 
   constructor(private service: LivroService) { }
@@ -33,16 +33,17 @@ export class ListaLivrosComponent {
   //   })
   // )
 
+  // Observable para buscar os livros
   livrosEncontrados$ = this.campoBusca.valueChanges
     .pipe(
-      debounceTime(PAUSA),
-      filter((valorDigitado) => valorDigitado.length >= 3),
+      debounceTime(PAUSA), // Aguarda o usuário parar de digitar por 300ms
+      filter((valorDigitado) => valorDigitado.length >= 3), // Apenas valores com 3 ou mais caracteres
       tap(() => console.log('Fluxo inicial')),
-      switchMap((valorDigitado) => this.service.buscar(valorDigitado)),
-      map(resultado => this.livrosResultado = resultado),
+      switchMap((valorDigitado) => this.service.buscar(valorDigitado)), // Faz uma requisição HTTP
+      map(resultado => this.livrosResultado = resultado), // Armazena o resultado da requisição em livrosResultado
       tap((retornoAPI) => console.log(retornoAPI)),
-      map(resultado => resultado.items ?? []),
-      map((items) => this.livrosResultadoParaLivros(items)),
+      map(resultado => resultado.items ?? []), // Se items for nulo, retorna um array vazio
+      map((items) => this.livrosResultadoParaLivros(items)), // Transforma os itens da API em objetos LivroVolumeInfo
       catchError((erro) => {
         // this.mensagemErro ='Ops, ocorreu um erro. Recarregue a aplicação!'
         // return EMPTY
@@ -51,6 +52,8 @@ export class ListaLivrosComponent {
       })
     )
 
+
+  // Função que transforma os itens da API em objetos LivroVolumeInfo
   livrosResultadoParaLivros(items: Item[]): LivroVolumeInfo[] {
     return items.map(item => {
       return new LivroVolumeInfo(item)
@@ -59,8 +62,3 @@ export class ListaLivrosComponent {
 
 }
 
-
-
-function trhowError(arg0: () => Error) {
-  throw new Error('Function not implemented.');
-}
